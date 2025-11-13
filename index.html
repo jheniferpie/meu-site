@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Projeto com Abas e Perfis</title>
+  <style>
+    :root{
+      --bg: #0f172a;
+      --panel: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --brand: #22c55e;
+      --brand-2: #60a5fa;
+      --accent: #1f2937;
+      --danger: #ef4444;
+      --ok: #10b981;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; }
+    body{
+      margin:0; font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 5% 0%, rgba(34,197,94,.15), transparent 60%),
+                  radial-gradient(1000px 500px at 90% 10%, rgba(96,165,250,.12), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .container{
+      max-width: 1100px; margin: 32px auto; padding: 0 16px;
+    }
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      font-weight: 800; letter-spacing: 0.3px;
+    }
+    .brand .logo{
+      width: 40px; height: 40px; border-radius: 10px; background:
+        conic-gradient(from 180deg at 50% 50%, #22c55e, #60a5fa, #22c55e);
+      box-shadow: 0 0 40px rgba(34,197,94,.3), 0 0 30px rgba(96,165,250,.25) inset;
+    }
+    .panel{
+      background: rgba(17,24,39,.6);
+      border: 1px solid rgba(148,163,184,.15);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      backdrop-filter: blur(8px);
+    }
+    /* Auth */
+    .auth-grid{ display:grid; grid-template-columns: 1fr; gap:16px; }
+    @media(min-width: 860px){ .auth-grid{ grid-template-columns: 1.1fr .9fr; } }
+    .auth-card{ padding: 24px; }
+    .auth-hero{ padding: 24px; position: relative; overflow:hidden; }
+    .auth-hero .bgblob{
+      position:absolute; inset:-40%;
+      background: radial-gradient(50% 50% at 30% 30%, rgba(34,197,94,.12), transparent 60%),
+                  radial-gradient(50% 50% at 70% 70%, rgba(96,165,250,.12), transparent 60%);
+      filter: blur(30px);
+    }
+    .muted{ color: var(--muted); }
+    .inputs{ display:grid; gap:12px; margin-top: 12px; }
+    label{ font-size: 14px; color: var(--muted); }
+    input{
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      background: #0b1220; border: 1px solid rgba(148,163,184,.18); color: var(--text);
+      outline: none;
+    }
+    input:focus{ border-color: rgba(96,165,250,.6); box-shadow: 0 0 0 4px rgba(96,165,250,.18); }
+    .row{ display:flex; gap:12px; }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding: 10px 14px; border-radius: 10px; border: 1px solid transparent; cursor:pointer;
+      color: #071019; font-weight: 700; letter-spacing: .2px; text-decoration:none;
+    }
+    .btn-primary{ background: linear-gradient(135deg, var(--brand), #16a34a); }
+    .btn-secondary{ background: linear-gradient(135deg, var(--brand-2), #3b82f6); }
+    .btn-ghost{ background: transparent; border-color: rgba(148,163,184,.25); color: var(--text); font-weight: 600; }
+    .btn-danger{ background: linear-gradient(135deg, #f87171, #ef4444); color: #1a0d0d; }
+
+    .split{ display:flex; align-items:center; gap:8px; margin: 14px 0; }
+    .split hr{ flex:1; border: none; height: 1px; background: rgba(148,163,184,.2); }
+
+    /* App layout */
+    .app-shell{ display:none; }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between; padding: 12px 16px; border-bottom: 1px solid rgba(148,163,184,.18);
+    }
+    .user-chip{ display:flex; align-items:center; gap:10px; }
+    .avatar{ width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #60a5fa); box-shadow: 0 0 16px rgba(96,165,250,.35); }
+
+    /* Tabs */
+    .tabs{ display:flex; gap:10px; padding: 10px; border-bottom: 1px solid rgba(148,163,184,.18); flex-wrap: wrap; }
+    .tab-btn{
+      padding: 10px 14px; border-radius: 999px; border:1px solid rgba(148,163,184,.2);
+      background: rgba(2,6,23,.6); color: var(--text); cursor:pointer; font-weight: 600;
+    }
+    .tab-btn.active{ background: linear-gradient(135deg, rgba(34,197,94,.28), rgba(96,165,250,.28)); border-color: rgba(96,165,250,.55); box-shadow: inset 0 0 20px rgba(34,197,94,.18); }
+
+    .subtabs{ display:flex; gap:8px; padding: 10px 10px; border-bottom: 1px dashed rgba(148,163,184,.18); flex-wrap: wrap; }
+    .subtab-btn{
+      padding: 8px 12px; border-radius: 999px; border:1px dashed rgba(148,163,184,.25);
+      background: rgba(2,6,23,.45); color: var(--text); cursor:pointer; font-weight: 600; font-size: 14px;
+    }
+    .subtab-btn.active{ background: rgba(96,165,250,.2); border-style: solid; border-color: rgba(96,165,250,.6); }
+
+    .content{ padding: 16px; }
+    .hidden{ display:none !important; }
+
+    .footer{ margin-top: 20px; color: var(--muted); font-size: 13px; text-align:center; }
+    a.link{ color: #93c5fd; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div style="font-size:18px;">Seu Projeto</div>
+          <div class="muted" style="font-size:12px;">Abas + Subabas + Perfis (client-side)</div>
+        </div>
+      </div>
+      <a class="link" href="https://julius.ai" target="_blank" rel="noopener">feito com Julius</a>
+    </header>
+
+    <!-- Auth -->
+    <section id="auth" class="auth-grid">
+      <div class="panel auth-card">
+        <h2 style="margin:0 0 6px">Entrar</h2>
+        <div class="muted">Use seu usuário e senha</div>
+        <div class="inputs">
+          <div>
+            <label for="login-username">Usuário</label>
+            <input id="login-username" placeholder="ex: maria" autocomplete="username" />
+          </div>
+          <div>
+            <label for="login-password">Senha</label>
+            <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+          <button id="btn-login" class="btn btn-primary">Entrar</button>
+        </div>
+        <div class="split"><hr><span class="muted" style="font-size:12px">ou</span><hr></div>
+        <button id="btn-demo" class="btn btn-ghost" title="Cria um usuário demo automaticamente">Entrar como demo</button>
+      </div>
+
+      <div class="panel auth-hero">
+        <div class="bgblob" aria-hidden="true"></div>
+        <h2 style="margin:0 0 8px">Criar conta</h2>
+        <div class="muted">Perfis são salvos localmente (localStorage). Não use senhas reais.</div>
+        <div class="inputs">
+          <div class="row">
+            <div style="flex:1">
+              <label for="reg-username">Usuário</label>
+              <input id="reg-username" placeholder="ex: joao" autocomplete="username" />
+            </div>
+            <div style="flex:1">
+              <label for="reg-display">Nome para mostrar</label>
+              <input id="reg-display" placeholder="ex: João Silva" />
+            </div>
+          </div>
+          <div class="row">
+            <div style="flex:1">
+              <label for="reg-password">Senha</label>
+              <input id="reg-password" type="password" placeholder="mín. 6 caracteres" autocomplete="new-password" />
+            </div>
+            <div style="flex:1">
+              <label for="reg-password-2">Confirmar senha</label>
+              <input id="reg-password-2" type="password" placeholder="repita a senha" autocomplete="new-password" />
+            </div>
+          </div>
+          <button id="btn-register" class="btn btn-secondary">Criar conta</button>
+        </div>
+        <div id="auth-msg" class="muted" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- App -->
+    <section id="app" class="panel app-shell">
+      <div class="topbar">
+        <div style="font-weight:700">Área Logada</div>
+        <div class="user-chip">
+          <div class="avatar" aria-hidden="true"></div>
+          <div>
+            <div id="chip-name" style="font-weight:700"></div>
+            <div id="chip-user" class="muted" style="font-size:12px"></div>
+          </div>
+          <button id="btn-logout" class="btn btn-danger" style="margin-left:8px">Sair</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" role="tablist" aria-label="Abas principais">
+        <button class="tab-btn active" data-tab="tab1" role="tab" aria-selected="true">Aba 1</button>
+        <button class="tab-btn" data-tab="tab2" role="tab" aria-selected="false">Aba 2</button>
+      </div>
+
+      <!-- Subtabs for Tab 1 -->
+      <div id="subtabs-tab1" class="subtabs" role="tablist" aria-label="Subabas da Aba 1">
+        <button class="subtab-btn active" data-subtab="tab1-a">Subaba 1A</button>
+        <button class="subtab-btn" data-subtab="tab1-b">Subaba 1B</button>
+      </div>
+      <!-- Subtabs for Tab 2 -->
+      <div id="subtabs-tab2" class="subtabs hidden" role="tablist" aria-label="Subabas da Aba 2">
+        <button class="subtab-btn active" data-subtab="tab2-a">Subaba 2A</button>
+        <button class="subtab-btn" data-subtab="tab2-b">Subaba 2B</button>
+      </div>
+
+      <!-- Content areas -->
+      <div class="content">
+        <div id="tab1-a" class="content-pane">Conteúdo da Aba 1 • Subaba 1A. Coloque aqui cards, tabelas, gráficos...</div>
+        <div id="tab1-b" class="content-pane hidden">Conteúdo da Aba 1 • Subaba 1B.</div>
+        <div id="tab2-a" class="content-pane hidden">Conteúdo da Aba 2 • Subaba 2A.</div>
+        <div id="tab2-b" class="content-pane hidden">Conteúdo da Aba 2 • Subaba 2B.</div>
+      </div>
+    </section>
+
+    <div class="footer">
+      Dica: você pode hospedar no GitHub Pages (branch main, arquivo index.html). | Código client-side, apenas para protótipo.
+    </div>
+  </div>
+
+  <script>
+    // Util: hash de senha com Web Crypto (SHA-256)
+    async function sha256Base64(text){
+      const enc = new TextEncoder();
+      const data = enc.encode(text);
+      const hashBuf = await crypto.subtle.digest('SHA-256', data);
+      const bytes = new Uint8Array(hashBuf);
+      let bin = '';
+      for (let b of bytes) bin += String.fromCharCode(b);
+      return btoa(bin);
+    }
+
+    // Storage helpers
+    function loadUsers(){
+      try{ return JSON.parse(localStorage.getItem('users_v1')||'{}'); }catch(e){ return {}; }
+    }
+    function saveUsers(obj){ localStorage.setItem('users_v1', JSON.stringify(obj)); }
+
+    function setCurrentUser(username){ localStorage.setItem('current_user_v1', username); }
+    function getCurrentUser(){ return localStorage.getItem('current_user_v1'); }
+    function clearCurrentUser(){ localStorage.removeItem('current_user_v1'); }
+
+    // UI refs
+    const elAuth = document.getElementById('auth');
+    const elApp = document.getElementById('app');
+    const elAuthMsg = document.getElementById('auth-msg');
+    const elChipName = document.getElementById('chip-name');
+    const elChipUser = document.getElementById('chip-user');
+
+    // Auth handlers
+    async function handleRegister(){
+      elAuthMsg.textContent = '';
+      const u = document.getElementById('reg-username').value.trim();
+      const d = document.getElementById('reg-display').value.trim() || u;
+      const p1 = document.getElementById('reg-password').value;
+      const p2 = document.getElementById('reg-password-2').value;
+      if(!u || !p1){ elAuthMsg.textContent = 'Preencha usuário e senha.'; return; }
+      if(p1.length < 6){ elAuthMsg.textContent = 'Senha deve ter pelo menos 6 caracteres.'; return; }
+      if(p1 !== p2){ elAuthMsg.textContent = 'As senhas não conferem.'; return; }
+      const users = loadUsers();
+      if(users[u]){ elAuthMsg.textContent = 'Usuário já existe.'; return; }
+      const hash = await sha256Base64(p1);
+      users[u] = { display: d, pass: hash, createdAt: Date.now() };
+      saveUsers(users);
+      elAuthMsg.textContent = 'Conta criada! Você já pode entrar.';
+      elAuthMsg.style.color = '#a7f3d0';
+    }
+
+    async function handleLogin(username, password){
+      const u = (username ?? document.getElementById('login-username').value).trim();
+      const p = (password ?? document.getElementById('login-password').value);
+      const users = loadUsers();
+      if(!users[u]){ alert('Usuário não encontrado. Crie uma conta.'); return; }
+      const hash = await sha256Base64(p);
+      if(users[u].pass !== hash){ alert('Senha incorreta.'); return; }
+      setCurrentUser(u);
+      renderApp();
+    }
+
+    function handleLogout(){
+      clearCurrentUser();
+      renderApp();
+    }
+
+    function renderApp(){
+      const u = getCurrentUser();
+      if(u){
+        const users = loadUsers();
+        const profile = users[u] || { display: u };
+        elChipName.textContent = profile.display || u;
+        elChipUser.textContent = '@' + u;
+        elAuth.style.display = 'none';
+        elApp.style.display = 'block';
+      } else {
+        elApp.style.display = 'none';
+        elAuth.style.display = 'grid';
+      }
+    }
+
+    // Tabs logic
+    function setupTabs(){
+      const tabButtons = Array.from(document.querySelectorAll('.tab-btn'));
+      const subtabGroups = {
+        tab1: document.getElementById('subtabs-tab1'),
+        tab2: document.getElementById('subtabs-tab2')
+      };
+
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const tab = btn.dataset.tab;
+          // alterna subtab groups
+          Object.entries(subtabGroups).forEach(([k, el]) => {
+            if(k === tab){ el.classList.remove('hidden'); }
+            else { el.classList.add('hidden'); }
+          });
+          // ativa primeira subaba do grupo atual
+          const firstSub = subtabGroups[tab].querySelector('.subtab-btn');
+          if(firstSub){ firstSub.click(); }
+        });
+      });
+
+      // Subtabs
+      document.querySelectorAll('.subtabs').forEach(group => {
+        group.addEventListener('click', (e) => {
+          const btn = e.target.closest('.subtab-btn');
+          if(!btn) return;
+          // ativa visual no grupo
+          group.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const id = btn.dataset.subtab;
+          // alterna conteúdos
+          document.querySelectorAll('.content-pane').forEach(p => p.classList.add('hidden'));
+          const pane = document.getElementById(id);
+          if(pane) pane.classList.remove('hidden');
+        });
+      });
+    }
+
+    // Demo user
+    async function ensureDemoAndLogin(){
+      const users = loadUsers();
+      if(!users['demo']){
+        users['demo'] = { display: 'Usuário Demo', pass: await sha256Base64('demo123'), createdAt: Date.now() };
+        saveUsers(users);
+      }
+      await handleLogin('demo', 'demo123');
+    }
+
+    // Bind events
+    document.getElementById('btn-register').addEventListener('click', handleRegister);
+    document.getElementById('btn-login').addEventListener('click', () => handleLogin());
+    document.getElementById('btn-logout').addEventListener('click', handleLogout);
+    document.getElementById('btn-demo').addEventListener('click', ensureDemoAndLogin);
+
+    // Enter key on login
+    document.getElementById('login-password').addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ handleLogin(); }});
+
+    // Init
+    setupTabs();
+    renderApp();
+  </script>
+</body>
+</html>
