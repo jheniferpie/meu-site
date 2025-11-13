@@ -363,6 +363,197 @@
     // Init
     setupTabs();
     renderApp();
-  </script>
+  </script> <script>
+// Hash de senha com fallback (usa SHA-256 quando disponível; senão, um hash simples)
+async function sha256Base64(text){
+  try{
+    if(window.crypto && crypto.subtle && TextEncoder){
+      var enc = new TextEncoder();
+      var data = enc.encode(text);
+      var hashBuf = await crypto.subtle.digest('SHA-256', data);
+      var bytes = new Uint8Array(hashBuf);
+      var bin = "";
+      for (var i = 0; i < bytes.length; i++) { bin += String.fromCharCode(bytes[i]); }
+      return btoa(bin);
+    }
+  }catch(e){
+    console.warn("SHA-256 falhou, usando fallback. Motivo:", e);
+  }
+  // Fallback (não seguro, apenas p/ demo)
+  var h = 0;
+  for (var j = 0; j < text.length; j++){
+    h = (h << 5) - h + text.charCodeAt(j);
+    h = h & h;
+  }
+  return btoa(String(h));
+}
+
+// Storage helpers
+function loadUsers(){
+  try{
+    var raw = localStorage.getItem("users_v1") || "{}";
+    var obj = JSON.parse(raw);
+    if(typeof obj !== "object" || obj === null) return {};
+    return obj;
+  }catch(e){
+    console.warn("users_v1 inválido, limpando...", e);
+    localStorage.removeItem("users_v1");
+    return {};
+  }
+}
+function saveUsers(obj){
+  try{
+    localStorage.setItem("users_v1", JSON.stringify(obj));
+  }catch(e){
+    alert("Erro ao salvar usuário no navegador. Verifique espaço de armazenamento.");
+  }
+}
+
+function setCurrentUser(username){ localStorage.setItem("current_user_v1", username); }
+function getCurrentUser(){ return localStorage.getItem("current_user_v1"); }
+function clearCurrentUser(){ localStorage.removeItem("current_user_v1"); }
+
+// UI refs
+var elAuth = document.getElementById("auth");
+var elApp = document.getElementById("app");
+var elAuthMsg = document.getElementById("auth-msg");
+var elChipName = document.getElementById("chip-name");
+var elChipUser = document.getElementById("chip-user");
+
+// Helpers
+function val(id){ var el = document.getElementById(id); return el ? el.value : ""; }
+function setMsg(txt, color){ if(!elAuthMsg) return; elAuthMsg.textContent = txt || ""; if(color) elAuthMsg.style.color = color; else elAuthMsg.style.color = "#94a3b8"; }
+
+// Auth handlers
+async function handleRegister(ev){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  setMsg("");
+  var u = val("reg-username").trim();
+  var d = val("reg-display").trim() || u;
+  var p1 = val("reg-password");
+  var p2 = val("reg-password-2");
+
+  if(!u || !p1){ setMsg("Preencha usuário e senha."); return; }
+  if(p1.length < 6){ setMsg("Senha deve ter pelo menos 6 caracteres."); return; }
+  if(p1 !== p2){ setMsg("As senhas não conferem."); return; }
+
+  var users = loadUsers();
+  if(users[u]){ setMsg("Usuário já existe."); return; }
+
+  try{
+    var hash = await sha256Base64(p1);
+    users[u] = { display: d, pass: hash, createdAt: Date.now() };
+    saveUsers(users);
+    setMsg("Conta criada! Você já pode entrar.", "#a7f3d0");
+  }catch(e){
+    console.error("Falha ao criar conta:", e);
+    setMsg("Erro ao criar conta. Tente novamente.");
+  }
+}
+
+async function handleLogin(username, password){
+  var u = (username || val("login-username")).trim();
+  var p = (password || val("login-password"));
+
+  var users = loadUsers();
+  if(!users[u]){ alert("Usuário não encontrado. Crie uma conta."); return; }
+
+  var hash = await sha256Base64(p);
+  if(users[u].pass !== hash){ alert("Senha incorreta."); return; }
+
+  setCurrentUser(u);
+  renderApp();
+}
+
+function handleLogout(){
+  clearCurrentUser();
+  renderApp();
+}
+
+function renderApp(){
+  var u = getCurrentUser();
+  if(u){
+    var users = loadUsers();
+    var profile = users[u] || { display: u };
+    if(elChipName) elChipName.textContent = profile.display || u;
+    if(elChipUser) elChipUser.textContent = "@" + u;
+    if(elAuth) elAuth.style.display = "none";
+    if(elApp) elApp.style.display = "block";
+  } else {
+    if(elApp) elApp.style.display = "none";
+    if(elAuth) elAuth.style.display = "grid";
+  }
+}
+
+// Tabs
+function setupTabs(){
+  var tabButtons = Array.prototype.slice.call(document.querySelectorAll(".tab-btn"));
+  var subtabGroups = {
+    tab1: document.getElementById("subtabs-tab1"),
+    tab2: document.getElementById("subtabs-tab2")
+  };
+
+  tabButtons.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      tabButtons.forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      var tab = btn.dataset.tab;
+      Object.keys(subtabGroups).forEach(function(k){
+        var el = subtabGroups[k];
+        if(!el) return;
+        if(k === tab){ el.classList.remove("hidden"); } else { el.classList.add("hidden"); }
+      });
+      var group = subtabGroups[tab];
+      if(group){
+        var firstSub = group.querySelector(".subtab-btn");
+        if(firstSub){ firstSub.click(); }
+      }
+    });
+  });
+
+  document.querySelectorAll(".subtabs").forEach(function(group){
+    group.addEventListener("click", function(e){
+      var btn = e.target.closest(".subtab-btn");
+      if(!btn) return;
+      group.querySelectorAll(".subtab-btn").forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      var id = btn.dataset.subtab;
+      document.querySelectorAll(".content-pane").forEach(function(p){ p.classList.add("hidden"); });
+      var pane = document.getElementById(id);
+      if(pane) pane.classList.remove("hidden");
+    });
+  });
+}
+
+// Demo user
+async function ensureDemoAndLogin(){
+  var users = loadUsers();
+  if(!users["demo"]){
+    users["demo"] = { display: "Usuário Demo", pass: await sha256Base64("demo123"), createdAt: Date.now() };
+    saveUsers(users);
+  }
+  await handleLogin("demo", "demo123");
+}
+
+// Bind events
+function bindEvents(){
+  var btnRegister = document.getElementById("btn-register");
+  var btnLogin = document.getElementById("btn-login");
+  var btnLogout = document.getElementById("btn-logout");
+  var btnDemo = document.getElementById("btn-demo");
+  var loginPass = document.getElementById("login-password");
+
+  if(btnRegister) btnRegister.addEventListener("click", handleRegister);
+  if(btnLogin) btnLogin.addEventListener("click", function(e){ e.preventDefault(); handleLogin(); });
+  if(btnLogout) btnLogout.addEventListener("click", handleLogout);
+  if(btnDemo) btnDemo.addEventListener("click", function(e){ e.preventDefault(); ensureDemoAndLogin(); });
+  if(loginPass) loginPass.addEventListener("keydown", function(e){ if(e.key === "Enter"){ handleLogin(); }});
+}
+
+// Init
+setupTabs();
+bindEvents();
+renderApp();
+</script>
 </body>
 </html>
